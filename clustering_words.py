@@ -4,9 +4,12 @@ from sklearn.cluster import KMeans
 
 num_of_char_limit = 6
 n_clusters = 2
+
 aiueo = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん"
 komoji = "ぁぃぅぇぉっゃゅょゎ"
 oomoji = "あいうえおつやゆよわ"
+keep_away_chars = "にぬねむるれ"
+
 words_list = []
 
 
@@ -51,8 +54,11 @@ def word2vector(word):
     for char in word:
         char = convert_to_plane(char)
         i = aiueo.index(char)
-        if(vector[i] == 0):
-            vector[i] = 1
+        if vector[i] == 0:
+            if char in keep_away_chars:  # 一部希少文字のみ分離
+                vector[i] = 3
+            else:
+                vector[i] = 1
 
     return vector
 
@@ -90,10 +96,10 @@ def recursive_clustering(words, word_vectors, k_means_classifier):
         word_vectors_2 = np.empty((0, len(aiueo)), int)
 
         for i, word_vector in enumerate(word_vectors):
-            if(predict[i] == 0):
+            if predict[i] == 0:
                 words_1.append(words[i])
                 word_vectors_1 = np.append(word_vectors_1, word_vector.reshape(1, len(aiueo)), axis=0)
-            elif(predict[i] == 1):
+            elif predict[i] == 1:
                 words_2.append(words[i])
                 word_vectors_2 = np.append(word_vectors_2, word_vector.reshape(1, len(aiueo)), axis=0)
 
@@ -110,8 +116,8 @@ if __name__ == "__main__":
     k_means_classifier = KMeans(n_clusters=n_clusters)
 
     # words = load_words("data/words_lt4.txt")
-    # words = load_words("data/words_eq4.txt")
-    words = load_words("data/words_eq5.txt")
+    words = load_words("data/words_eq4.txt")
+    # words = load_words("data/words_eq5.txt")
     # words = load_words("data/words_eq6.txt")
 
     word_vectors = [word2vector(word) for word in words]
